@@ -11,13 +11,4 @@ class CommentForm(ModelForm):
 		model = Comment
 		fields = '__all__'
 
-class DeleteCafeForm(ModelForm):
-	class Meta:
-		model = Cafe
-        fields = []
-
-class DeleteCommentForm(ModelForm):
-	class Meta:
-		model = Comment
-        fields = []
 

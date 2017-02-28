@@ -1,8 +1,11 @@
 from django.views import generic 
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse_lazy
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Cafe, Comment, Profile
+from django.forms.models import model_to_dict
 from api import models
+from json import dumps
 from django.http import JsonResponse,HttpResponseRedirect
 from django.core import serializers
 from django.shortcuts import render, redirect
@@ -24,26 +27,53 @@ def success_resp(request, resp=None):
 '''
 Cafe (create, edit, delete, retrieve, IndexView)
 '''
-class IndexView(generic.ListView):
-		model = Cafe
-		template_name = 'cafe_list.html'
-		context_object_name = 'all_cafes'
+# class IndexView(generic.ListView):
+# 		model = Cafe
+# 		template_name = 'cafe_list.html'
+# 		context_object_name = 'all_cafes'
 
-		def get_queryset(self):
-				return Cafe.objects.all()
+# 		def get_queryset(self):
+# 				return Cafe.objects.all()
+
+def indexView(request):
+	result = {}
+	try:
+		result["ok"] = True
+		result["result"] = [model_to_dict(cafe) for cafe in Cafe.objects.all()]
+	except Exception:
+		result["ok"] = False
+		result["result"] = []
+	return JsonResponse(result)
 
 def create_cafe(request):
-	if request.method == "POST":
-		form = CafeForm(request.POST) # model form
-		if form.is_valid():
-			form.save()
-			return success_resp(request, form.cleaned_data)
-		return fail_resp(request, "form is not valid")
+	result = {}
+	result_msg = None
+	try:
+		req_input = {
+		'name': request.POST['name'],
+		'location':request.POST['location'],
+		'date':request.POST['date'],
+		'description':request.POST['description'],
+		'Calories':request.POST['Calories'],
+		}
+	except KeyError:
+		req_input = {}
+		result_msg = "Input did not contain all the required fields."
+	form = CafeForm(req_input)
+	if form.is_valid():
+		cafe = form.save()
+		result["ok"] = True
+		result["result"] = {"id": cafe.id}
 	else:
-		return fail_resp(request, "make post request")
+		result_msg = "Invalid form data." if result_msg is None else result_msg
+		result["ok"] = False
+		result["result"] = result_msg
+		result["submitted_data"] = dumps(request.POST)
+	return JsonResponse(result)
 
-def edit_cafe(request, id):
-	cafe = Cafe.objects.get(pk=id)
+
+def edit_cafe(request):
+	cafe = Cafe.objects.get('cafe')
 	form = CafeForm(request.POST, intance=cafe)
 	if form.is_valid():
 		form.save()
@@ -51,24 +81,27 @@ def edit_cafe(request, id):
 	else:
 		return fail_resp(request, "form is not valid")
 
-def delete_cafe(request, cafe_id):
-	if request.method != 'POST':
-		return JsonResponse(request, "Must make POST request.",safe=False)
+
+def delete_cafe(request, pk):
+	resp = {}
+	cafefound = True
 	try:
-		cafe_to_delete = Cafe.objects.get(pk=cafe_id)
-		form = DeleteCafeForm(request.POST, instance=cafe_to_delete)
-        if form.is_valid():
-            cafe_to_delete.delete() 
-            return success_resp(request, {'cafe_id': cafe_to_delete.pk})
-	except Cafe.DoesNotExist:
-		return JsonResponse(request, "Cafe not found.",safe=False)
+		cafe = Cafe.objects.get(pk=pk)
+		cafe.delete()
+	except ObjectDoesNotExist:
+		cafefound = False
+	if cafefound:
+		resp["ok"] = True
+	else:
+		resp["ok"] = False
+	return JsonResponse(resp)
 
 
 
-def retrieve_cafe(request, comment_id):
+def retrieve_cafe(request):
     if request.method != 'GET':
         return JsonResponse(request, "Must make GET request.", safe=False)
-    c = Cafe.objects.get(pk=comment_id)
+    c = Cafe.objects.get()
     return JsonResponse({'name': c.name,'location':c.location,'date':c.date,'description':c.description,'Calories':c.Calories})
 
 
@@ -86,8 +119,8 @@ class CommentIndexView(generic.ListView):
 				return Comment.objects.all()
 
 
-def edit_comment(request, id):
-	comment = Comment.objects.get(pk=id)
+def edit_comment(request):
+	comment = Comment.objects.get()
 	form = CommentForm(request.POST, intance=comment)
 	if form.is_valid():
 		form.save()
@@ -124,9 +157,9 @@ def delete_comment(request, comment_id):
 	try:
 		comment_to_delete = Comment.objects.get(pk=cafe_id)
 		form = DeleteCafeForm(request.POST, instance=comment_to_delete)
-        if form.is_valid():
-            comment_to_delete.delete() 
-            return success_resp(request, {'comment_id': comment_to_delete.pk})
+		if form.is_valid():
+			comment_to_delete.delete() 
+			return success_resp(request, {'comment_id': comment_to_delete.pk})
 	except Comment.DoesNotExist:
 		return JsonResponse(request, "Comment not found.",safe=False)
 
@@ -157,7 +190,8 @@ def create_profile(request):
 
 def retrieve_profile(request, profile_id):
     if request.method != 'GET':
-        return JsonResponse(request, "Must make GET request.",safe=False)
+        return fail_resp(request, "Must make POST request.")
+    profile = Profile(name=request.GET['name'])
     try:
         profile = Profile.objects.get(pk=profile_id)
     except Profile.DoesNotExist:
