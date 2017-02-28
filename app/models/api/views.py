@@ -27,13 +27,6 @@ def success_resp(request, resp=None):
 '''
 Cafe (create, edit, delete, retrieve, IndexView)
 '''
-# class IndexView(generic.ListView):
-# 		model = Cafe
-# 		template_name = 'cafe_list.html'
-# 		context_object_name = 'all_cafes'
-
-# 		def get_queryset(self):
-# 				return Cafe.objects.all()
 
 def indexView(request):
 	result = {}
@@ -72,15 +65,6 @@ def create_cafe(request):
 	return JsonResponse(result)
 
 
-def edit_cafe(request):
-	cafe = Cafe.objects.get('cafe')
-	form = CafeForm(request.POST, intance=cafe)
-	if form.is_valid():
-		form.save()
-		return success_resp(request, form.cleaned_data)
-	else:
-		return fail_resp(request, "form is not valid")
-
 
 def delete_cafe(request, pk):
 	resp = {}
@@ -98,104 +82,118 @@ def delete_cafe(request, pk):
 
 
 
-def retrieve_cafe(request):
-    if request.method != 'GET':
-        return JsonResponse(request, "Must make GET request.", safe=False)
-    c = Cafe.objects.get()
-    return JsonResponse({'name': c.name,'location':c.location,'date':c.date,'description':c.description,'Calories':c.Calories})
+# def retrieve_cafe(request):
+#     if request.method != 'GET':
+#         return JsonResponse(request, "Must make GET request.", safe=False)
+#     c = Cafe.objects.get()
+#     return JsonResponse({'name': c.name,'location':c.location,'date':c.date,'description':c.description,'Calories':c.Calories})
 
 
 '''
-Comment (create, edit, delete, retrieve, IndexView)
+Comment (create, delete, commentView)
 '''
 
 
-class CommentIndexView(generic.ListView):
-		model = Comment
-		template_name = 'comment.html'
-		context_object_name = 'all_comments'
-
-		def get_queryset(self):
-				return Comment.objects.all()
-
-
-def edit_comment(request):
-	comment = Comment.objects.get()
-	form = CommentForm(request.POST, intance=comment)
-	if form.is_valid():
-		form.save()
-		return success_resp(request, form.cleaned_data)
-	else:
-		return fail_resp(request, "form is not valid")
+def commentView(request):
+	result = {}
+	try:
+		result["ok"] = True
+		result["result"] = [model_to_dict(comment) for comment in Comment.objects.all()]
+	except Exception:
+		result["ok"] = False
+		result["result"] = []
+	return JsonResponse(result)
 
 
 def create_comment(request):
-	if request.method != 'POST':
-		return fail_resp(request, "Must make POST request.")
-	if 'description' not in request.POST:
-		return fail_resp(request, "Missing required fields.")
-	comment = Comment(description=request.POST['description'])
+	result = {}
+	result_msg = None
 	try:
-		comment.save()
-	except db.Error:
-		return fail_resp(request, str(db.Error))
-	return success_resp(request, {'comment_id': comment.pk})
+		req_input = {
+		'description': request.POST['description'],
+		'feedback':request.POST['feedback'],
+		'date_written':request.POST['date_written'],
+		'rating':request.POST['rating'],
+		}
+	except KeyError:
+		req_input = {}
+		result_msg = "Input did not contain all the required fields."
+	form = CommentForm(req_input)
+	if form.is_valid():
+		comment = form.save()
+		result["ok"] = True
+		result["result"] = {"id": comment.id}
+	else:
+		result_msg = "Invalid form data." if result_msg is None else result_msg
+		result["ok"] = False
+		result["result"] = result_msg
+		result["submitted_data"] = dumps(request.POST)
+	return JsonResponse(result)
 
-def retrieve_comment(request, comment_id):
-    if request.method != 'GET':
-        return JsonResponse(request, "Must make GET request.",safe=False)
-    try:
-        comment = Comment.objects.get(pk=comment_id)
-    except Comment.DoesNotExist:
-        return JsonResponse(request, "Comment not found.",safe=False)
 
-    return JsonResponse({'description': Comment.description},safe=False)
-
-def delete_comment(request, comment_id):
-	if request.method != 'POST':
-		return JsonResponse(request, "Must make POST request.",safe=False)
+def delete_comment(request, pk):
+	resp = {}
+	commentfound = True
 	try:
-		comment_to_delete = Comment.objects.get(pk=cafe_id)
-		form = DeleteCafeForm(request.POST, instance=comment_to_delete)
-		if form.is_valid():
-			comment_to_delete.delete() 
-			return success_resp(request, {'comment_id': comment_to_delete.pk})
-	except Comment.DoesNotExist:
-		return JsonResponse(request, "Comment not found.",safe=False)
+		comment = Comment.objects.get(pk=pk)
+		comment.delete()
+	except ObjectDoesNotExist:
+		commentfound = False
+	if cafefound:
+		resp["ok"] = True
+	else:
+		resp["ok"] = False
+	return JsonResponse(resp)
 
 '''
 Profile (create, retrieve, IndexView)
 '''
 
+def profileView(request):
+	result = {}
+	try:
+		result["ok"] = True
+		result["result"] = [model_to_dict(profile) for profile in Profile.objects.all()]
+	except Exception:
+		result["ok"] = False
+		result["result"] = []
+	return JsonResponse(result)
 
-
-class ProfileIndexView(generic.ListView):
-		template_name = 'home.html'
-		context_object_name = 'all_users'
-
-		def get_queryset(self):
-				return Profile.objects.all()
 
 def create_profile(request):
-	if request.method != 'POST':
-		return fail_resp(request, "Must make POST request.")
-	if 'name' not in request.POST:
-		return fail_resp(request, "Missing required fields.")
-	profile = Profile(name=request.POST['name'])
+	result = {}
+	result_msg = None
 	try:
-		profile.save()
-	except db.Error:
-		return fail_resp(request, str(db.Error))
-	return success_resp(request, {'profile_id': profile.pk})
+		req_input = {
+		'name': request.POST['name'],
+		}
+	except KeyError:
+		req_input = {}
+		result_msg = "Input did not contain all the required fields."
+	form = ProfileForm(req_input)
+	if form.is_valid():
+		profile = form.save()
+		result["ok"] = True
+		result["result"] = {"id": profile.id}
+	else:
+		result_msg = "Invalid form data." if result_msg is None else result_msg
+		result["ok"] = False
+		result["result"] = result_msg
+		result["submitted_data"] = dumps(request.POST)
+	return JsonResponse(result)
 
-def retrieve_profile(request, profile_id):
-    if request.method != 'GET':
-        return fail_resp(request, "Must make POST request.")
-    profile = Profile(name=request.GET['name'])
-    try:
-        profile = Profile.objects.get(pk=profile_id)
-    except Profile.DoesNotExist:
-        return JsonResponse(request, "Profile not found.",safe=False)
 
-    return JsonResponse({'name': profile.name},safe=False)
+def delete_profile(request, pk):
+	resp = {}
+	profilefound = True
+	try:
+		profile = Profile.objects.get(pk=pk)
+		profile.delete()
+	except ObjectDoesNotExist:
+		profilefound = False
+	if cafefound:
+		resp["ok"] = True
+	else:
+		resp["ok"] = False
+	return JsonResponse(resp)
 
