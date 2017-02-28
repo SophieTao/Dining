@@ -6,7 +6,7 @@ models:
       - "$PWD:/app"
     ports:
       - "8001:8000"
-    command: bash -c "python /app/dining/manage.py makemigrations && python /app/dining/manage.py migrate && python /app/dining/manage.py loaddata fixture.json && mod_wsgi-express start-server --working-directory /app/models --reload-on-changes /app/models/models/wsgi.py"
+    command: bash -c "python /app/models/manage.py makemigrations api && python /app/models/manage.py migrate && mod_wsgi-express start-server --log-to-terminal --working-directory /app/models --reload-on-changes /app/models/models/wsgi.py"
 
 exp:
    image: tp33/django
@@ -16,7 +16,7 @@ exp:
       - "8002:8000"
    volumes:
       - "$PWD:/app"
-   command: bash -c "mod_wsgi-express start-server --working-directory /app/exp --reload-on-changes /app/exp/exp/wsgi.py"
+   command: bash -c "mod_wsgi-express start-server --working-directory /app/exp --log-to-terminal --reload-on-changes /app/exp/exp/wsgi.py"
 
 
 web:
@@ -27,4 +27,4 @@ web:
       - "8003:8000"
    volumes:
       - "$PWD:/app"
-   command: bash -c "mod_wsgi-express start-server --working-directory /app/web --reload-on-changes /app/web/web/wsgi.py"
+   command: bash -c "mod_wsgi-express start-server --working-directory /app/web --log-to-terminal --reload-on-changes /app/web/web/wsgi.py"

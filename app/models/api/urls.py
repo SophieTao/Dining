@@ -5,7 +5,7 @@ urlpatterns = [
     url(r'^meals/$', views.IndexView.as_view(),name='cafe_list'),
     url(r'^meals/(\d+)$', views.retrieve_cafe, name='meal_detail'),
     url(r'^meals/(?P<pk>\d+)/edit$', views.CafeUpdate.as_view(), name='cafe-update'),
-    url(r'^meals/create$', views.CafeCreate.as_view(), name='cafe-add'),
+    url(r'^meals/create$', views.create_cafe, name='cafe-add'),
     url(r'^meals/(?P<pk>\d+)/delete$', views.CafeDelete.as_view(), name='cafe-delete'),
 
     url(r'^comments/$', views.CommentIndexView.as_view(), name='comment_list'),     
