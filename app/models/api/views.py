@@ -101,20 +101,20 @@ def create_comment(request):
 		return fail_resp(request, "Must make POST request.")
 	if 'description' not in request.POST:
 		return fail_resp(request, "Missing required fields.")
-	profile = Profile(description=request.POST['description'])
+	comment = Comment(description=request.POST['description'])
 	try:
-		profile.save()
+		comment.save()
 	except db.Error:
 		return fail_resp(request, str(db.Error))
-	return success_resp(request, {'profile_id': profile.pk})
+	return success_resp(request, {'comment_id': comment.pk})
 
-def retrieve_comment(request, profile_id):
+def retrieve_comment(request, comment_id):
     if request.method != 'GET':
         return JsonResponse(request, "Must make GET request.",safe=False)
     try:
-        profile = Comment.objects.get(pk=profile_id)
-    except Profile.DoesNotExist:
-        return JsonResponse(request, "Profile not found.",safe=False)
+        comment = Comment.objects.get(pk=comment_id)
+    except Comment.DoesNotExist:
+        return JsonResponse(request, "Comment not found.",safe=False)
 
     return JsonResponse({'description': Comment.description},safe=False)
 

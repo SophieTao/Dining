@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^comments/$', views.CommentIndexView.as_view(), name='comment_list'),     
     url(r'^comments/(\d+)$', views.retrieve_comment, name='detail'),
 	url(r'^comments/(?P<pk>\d+)/edit$', views.CommentUpdate.as_view(), name='comment-update'),
-    url(r'^comments/create$', views.CommentCreate.as_view(), name='comment-add'),
+    url(r'^comments/create$', views.create_comment, name='comment-add'),
     url(r'^comments/(?P<pk>\d+)/delete$', views.CommentDelete.as_view(), name='comment-delete'),
 
     url(r'^$', views.ProfileIndexView.as_view(), name='home'),
