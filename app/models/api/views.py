@@ -6,15 +6,8 @@ from api import models
 from django.http import JsonResponse,HttpResponseRedirect
 from django.core import serializers
 from django.shortcuts import render, redirect
-from .forms import CafeForm
+from .forms import *
 
-class IndexView(generic.ListView):
-		model = Cafe
-		template_name = 'cafe_list.html'
-		context_object_name = 'all_cafes'
-
-		def get_queryset(self):
-				return Cafe.objects.all()
 
 def fail_resp(request, resp=None):
 	if resp:
@@ -28,6 +21,16 @@ def success_resp(request, resp=None):
 	else:
 		return JsonResponse({'status': True})
 
+'''
+Cafe (create, edit, delete, retrieve, IndexView)
+'''
+class IndexView(generic.ListView):
+		model = Cafe
+		template_name = 'cafe_list.html'
+		context_object_name = 'all_cafes'
+
+		def get_queryset(self):
+				return Cafe.objects.all()
 
 def create_cafe(request):
 	if request.method == "POST":
@@ -47,24 +50,32 @@ def edit_cafe(request, id):
 		return success_resp(request, form.cleaned_data)
 	else:
 		return fail_resp(request, "form is not valid")
-	
 
-		
+def delete_cafe(request, cafe_id):
+	if request.method != 'POST':
+		return JsonResponse(request, "Must make POST request.",safe=False)
+	try:
+		cafe_to_delete = Cafe.objects.get(pk=cafe_id)
+		form = DeleteCafeForm(request.POST, instance=cafe_to_delete)
+        if form.is_valid():
+            cafe_to_delete.delete() 
+            return success_resp(request, {'cafe_id': cafe_to_delete.pk})
+	except Cafe.DoesNotExist:
+		return JsonResponse(request, "Cafe not found.",safe=False)
 
-class CafeDelete(generic.DeleteView):
-    model = Cafe
-    success_url = reverse_lazy('cafe_list')
 
-class CafeUpdate(generic.UpdateView):
-		model = Cafe
-		success_url = reverse_lazy('cafe_list')
-		fields = ['name','location','date','description','Calories'] #fields from model.py
 
 def retrieve_cafe(request, comment_id):
     if request.method != 'GET':
-        return JsonResponse(request, "Must make GET request.",safe=False)
+        return JsonResponse(request, "Must make GET request.", safe=False)
     c = Cafe.objects.get(pk=comment_id)
     return JsonResponse({'name': c.name,'location':c.location,'date':c.date,'description':c.description,'Calories':c.Calories})
+
+
+'''
+Comment (create, edit, delete, retrieve, IndexView)
+'''
+
 
 class CommentIndexView(generic.ListView):
 		model = Comment
@@ -75,25 +86,14 @@ class CommentIndexView(generic.ListView):
 				return Comment.objects.all()
 
 
-
-class CommentDelete(generic.DeleteView):
-    model = Comment
-    success_url = reverse_lazy('comment_list')
-
-class CommentUpdate(generic.UpdateView):
-		model = Comment
-		success_url = reverse_lazy('comment_list')
-		#fields = ['description','feedback','author','date_written','rating','meal'] #fields from model.py
-		fields = ['description','feedback','date_written','rating'] #fields from model.py
-
-
-class ProfileIndexView(generic.ListView):
-		template_name = 'home.html'
-		context_object_name = 'all_users'
-
-		def get_queryset(self):
-				return Profile.objects.all()
-
+def edit_comment(request, id):
+	comment = Comment.objects.get(pk=id)
+	form = CommentForm(request.POST, intance=comment)
+	if form.is_valid():
+		form.save()
+		return success_resp(request, form.cleaned_data)
+	else:
+		return fail_resp(request, "form is not valid")
 
 
 def create_comment(request):
@@ -117,6 +117,31 @@ def retrieve_comment(request, comment_id):
         return JsonResponse(request, "Comment not found.",safe=False)
 
     return JsonResponse({'description': Comment.description},safe=False)
+
+def delete_comment(request, comment_id):
+	if request.method != 'POST':
+		return JsonResponse(request, "Must make POST request.",safe=False)
+	try:
+		comment_to_delete = Comment.objects.get(pk=cafe_id)
+		form = DeleteCafeForm(request.POST, instance=comment_to_delete)
+        if form.is_valid():
+            comment_to_delete.delete() 
+            return success_resp(request, {'comment_id': comment_to_delete.pk})
+	except Comment.DoesNotExist:
+		return JsonResponse(request, "Comment not found.",safe=False)
+
+'''
+Profile (create, retrieve, IndexView)
+'''
+
+
+
+class ProfileIndexView(generic.ListView):
+		template_name = 'home.html'
+		context_object_name = 'all_users'
+
+		def get_queryset(self):
+				return Profile.objects.all()
 
 def create_profile(request):
 	if request.method != 'POST':
