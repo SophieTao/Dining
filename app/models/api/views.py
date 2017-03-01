@@ -1,28 +1,14 @@
+from django.views.generic import View
 from django.views import generic 
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.core.urlresolvers import reverse_lazy
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Cafe, Comment, Profile
+from .models import *
 from django.forms.models import model_to_dict
 from api import models
 from json import dumps
-from django.http import JsonResponse,HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
 from django.core import serializers
 from django.shortcuts import render, redirect
 from .forms import *
-
-
-def fail_resp(request, resp=None):
-	if resp:
-		return JsonResponse({'status': False, 'resp': resp})
-	else:
-		return JsonResponse({'status': False})
-
-def success_resp(request, resp=None):
-	if resp:
-		return JsonResponse({'status': True, 'resp': resp})
-	else:
-		return JsonResponse({'status': True})
 
 '''
 Cafe (create, edit, delete, retrieve, IndexView)
@@ -81,12 +67,6 @@ def delete_cafe(request, pk):
 	return JsonResponse(resp)
 
 
-
-# def retrieve_cafe(request):
-#     if request.method != 'GET':
-#         return JsonResponse(request, "Must make GET request.", safe=False)
-#     c = Cafe.objects.get()
-#     return JsonResponse({'name': c.name,'location':c.location,'date':c.date,'description':c.description,'Calories':c.Calories})
 
 
 '''
@@ -196,4 +176,136 @@ def delete_profile(request, pk):
 	else:
 		resp["ok"] = False
 	return JsonResponse(resp)
+
+
+
+'''
+Retrieve and Update Cafe, Comment, Profile
+'''
+class CafeRetrieveUpdate(View):
+
+	def get(self, request, pk):
+		result = {}
+		try:
+			cafe = Cafe.objects.get(pk=pk)
+			result["ok"] = True
+			result["result"] = model_to_dict(user)
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Cafe does not exist."
+		return JsonResponse(result)
+
+	def post(self, request, pk):
+		result = {}
+		try:
+			cafe = Cafe.objects.get(pk=pk)
+			cafe_fields = [c.name for c in Cafe._meta.get_fields()]
+			for field in cafe_fields:
+				if field in request.POST:
+					setattr(cafe, field, request.POST[field])
+			cafe.save()
+			result["ok"] = True
+			result["result"] = "Cafe updated succesfully."
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Cafe does not exist."
+		return JsonResponse(result)
+
+class CommentRetrieveUpdate(View):
+	def get(self, request, pk):
+		result = {}
+		try:
+			comment = Comment.objects.get(pk=pk)
+			result["ok"] = True
+			result["result"] = model_to_dict(comment)
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Comment does not exist."
+		return JsonResponse(result)
+
+	def post(self, request, pk):
+		result = {}
+		try:
+			comment = Comment.objects.get(pk=pk)
+			comment_fields = [c_field.name for c_field in Comment._meta.get_fields()]
+			for field in comment_fields:
+				if field in request.POST:
+					setattr(comment, field, request.POST[field])
+			comment.save()
+			result["ok"] = True
+			result["result"] = "Comment updated succesfully."
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Comment does not exist."
+		return JsonResponse(result)
+
+class ProfileRetrieveUpdate(View):
+	def get(self, request, pk):
+		result = {}
+		try:
+			profile = Profile.objects.get(pk=id)
+			result["ok"] = True
+			result["result"] = model_to_dict(profile);
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Profile does not exist."
+		return JsonResponse(result)
+
+	def post(self, request, pk):
+		result = {}
+		try:
+			profile = Profile.objects.get(pk=pk)
+			profile_fields = [p_field.name for p_field in Profile._meta.get_fields()]
+			for field in profile_fields:
+				if field in request.POST:
+					setattr(profile, field, request.POST[field])
+			profile.save()
+			result["ok"] = True
+			result["result"] = "Profile updated succesfully."
+		except ObjectDoesNotExist:
+			result["ok"] = False
+			result["result"] = "Profile does not exist."
+		return JsonResponse(result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
