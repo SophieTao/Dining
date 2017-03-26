@@ -4,6 +4,7 @@ from .forms import CreateAccountForm, CreateListingForm, LoginForm
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+import requests
 import urllib
 import urllib.request
 import urllib.parse
@@ -61,32 +62,37 @@ def logout(request):
     response.delete_cookie("auth")
     return response		
 
+
 def create_account(request):
 	if request.method == 'GET':
 		form = CreateAccountForm()
 		return render(request, 'api/create_account.html', {'form': form})
 	form = CreateAccountForm(request.POST)
 	if not form.is_valid():
+		print('error', form.errors)
 		return render(request, 'api/create_account.html', {'form': form})
+	next = form.cleaned_data.get('next') or reverse('home')
 	username = form.cleaned_data['username']
 	email = form.cleaned_data['email']
 	password = form.cleaned_data['password']
-	post_data = {'username': username,
-				 'email': email,
-				 'password': password,}
-	post_encoded = urllib.parse.urlencode(post_data).encode('utf-8')
-	req = urllib.request.Request('http://exp-api:8000/create_account', data=post_encoded)
-	resp_json = urllib.request.urlopen(req).read().decode('utf-8')
-	resp = json.loads(resp_json)
-	return HttpResponseRedirect("check")
+	post_data = {'username': username, 'email': email, 'password': password}
+	# post_encoded = urllib.parse.urlencode(form.cleaned_data).encode('utf-8')
+	# req = urllib.request.Request('http://exp-api:8000/create_account/', post_encoded)
+	# resp_json = urllib.request.urlopen(req).read().decode('utf-8')
+	# resp = json.loads(resp_json)
+	requests.post('http://exp-api:8000/create_account/', post_data).json()
 	if not resp or not resp['ok']:
+		print("create_account exp layer not successful")
 		return render(request, 'api/create_account.html', {'form': form, 'error': True})
-	post_data = {'email': email, 'password': password}
-	post_encoded = urllib.parse.urlencode(post_data).encode('utf-8')
-	req = urllib.request.Request('http://exp-api:8000/login/', data=post_encoded, method='POST')
-	resp_json = urllib.request.urlopen(req).read().decode('utf-8')
-	resp = json.loads(resp_json)
-	authenticator = resp['result']['authenticator']
-	response = HttpResponseRedirect(reverse('index'))
+	response = HttpResponseRedirect(reverse('home'))
 	response.set_cookie("auth", authenticator["authenticator"])
+	print("singup_page returned successfully, returning")
 	return response
+
+
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+As a user/student, I want to be able to create my account and log in to my account to see all the comments or dining hall dishes I posted to the website.
+
+As a user/student, I want to be able to rate the dishes I have in the dinning hall.
+
+As a user/dining hall, I want to post the different kind of dishes I provide so that students would know which dining hall to go to if they want to have the dishes I post.
+
+As a user, I want to be logged in to my account automatically if I logged in previously from the same browser.

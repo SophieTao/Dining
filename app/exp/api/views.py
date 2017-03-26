@@ -80,24 +80,33 @@ def logout(request):
 		return JsonResponse("Must Post", safe=False)
 
 def create_account(request):
-	if request.method == "POST":
-		post = request.POST.dict()
-		data = urllib.parse.urlencode(post).encode('utf-8')
-		req = urllib.request.Request('http://models-api:8000/api/v1/profiles/create', data)
-		resp_json = urllib.request.urlopen(req).read().decode('utf-8')
-		try:
-			resp = json.loads(resp_json)
-		except ObjectDoesNotExist:
-			return JsonResponse("Cannot create profile", safe=False)
-		auth = urllib.parse.urlencode(post).encode('utf-8')
-		req = urllib.request.Request('http://models-api:8000/api/v1/auth/create', auth)
-		try:
-			resp2 = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
-		except ObjectDoesNotExist:
-			return JsonResponse("Cannot create authenticator", safe=False)
-		return JsonResponse(resp2, safe=False)
+	# data = request.POST.dict()
+ #    post_data = urllib.parse.urlencode(data).encode('utf-8')
+ #    req = urllib.request.Request('http://models-api:8000/api/v1/profiles/create', post_data)
+ #    resp_json = urllib.request.urlopen(req).read().decode('utf-8')
+ #    resp = json.loads(resp_json)
+ #    return JsonResponse(resp)
+
+	content = {"success": False}
+	if not request.method == "POST":
+		content["result"] = "GET request received. Expected POST."
 	else:
-		return JsonResponse("Must Post", safe=False)
+		request_url = "http://models-api:8000/api/v1/profiles/create"
+		response = requests.post(request_url, data=request.POST)
+		r = response.json()
+		if r['success']:
+			url = "http://models-api:8000/api/v1/auth/create"
+			data = json.dumps(r['user'])
+			print(data)
+			r = requests.post(url, data={'name': request.POST['username'],'email': request.POST['username'],'password': request.POST['password']}).json()
+			if r['success']:
+				content['success'] = True
+				content['auth'] = r['auth']
+			else:
+				content['result'] = 'Models layer failed: ' + r['result']
+		else:
+			content['result'] = "Models layer failed: " + r['result']
+	return JsonResponse(content)
 
 # def getAuthUser(request):
 #     post = request.POST.dict()
@@ -128,16 +137,6 @@ def authenticate(request, authenticator):
 		#return JsonResponse("Authenticate failed.", safe=False)
 	return JsonResponse(resp)	
 
-def requestPost(url, postdata):
-    post_data = urllib.parse.urlencode(postdata).encode('utf-8')
-    req = urllib.request.Request('http://models-api:8000/api/v1/' + url, data=post_data, method='POST')
-    resp_json = urllib.request.urlopen(req).read().decode('utf-8')
-    return json.loads(resp_json)
-
-def requestGet(url):
-    req = urllib.request.Request('http://models-api:8000/api/v1/' + url)
-    resp_json = urllib.request.urlopen(req).read().decode('utf-8')
-    return json.loads(resp_json)
 ########################################
 
 def create_listing(request):

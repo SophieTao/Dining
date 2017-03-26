@@ -16,7 +16,7 @@ exp:
       - "8002:8000"
    volumes:
       - "$PWD:/app"
-   command: bash -c "mod_wsgi-express start-server --working-directory /app/exp --reload-on-changes /app/exp/exp/wsgi.py"
+   command: bash -c "pip install requests && mod_wsgi-express start-server --working-directory /app/exp --reload-on-changes /app/exp/exp/wsgi.py"
 
 
 web:
@@ -27,4 +27,4 @@ web:
       - "8003:8000"
    volumes:
       - "$PWD:/app"
-   command: bash -c "mod_wsgi-express start-server --working-directory /app/web --reload-on-changes /app/web/web/wsgi.py"
+   command: bash -c "pip install requests && mod_wsgi-express start-server --working-directory /app/web --reload-on-changes /app/web/web/wsgi.py"
