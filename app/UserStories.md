@@ -6,9 +6,16 @@
 
 4. Cathy is a third year student at UVa. She is pre-med and has a hectic work schedule. Instead of leaving some comments on our website, Cathy sometimes rates food based on taste and nutritional value. 
 
-5. Mike works for the Fresh Food Company at UVa and he is responsible. So he goes to the website twice a week to post the menu and sometimes he needs to update the menu based on what the dining hall offers on that day. 
+5. Anne is a chef at the Fresh Food Company. She cares about students and would like to know whether students like the food offered by the dining hall or not. She is open to any reasonable suggestions and critiques. Anne uses our website quite often since she thinks this is a good way to know what students want. Most of the time, she will reply to student's comments. 
 
-6. Anne is a chef at the Fresh Food Company. She cares about students and would like to know whether students like the food offered by the dining hall or not. She is open to any reasonable suggestions and critiques. Anne uses our website quite often since she thinks this is a good way to know what students want. Most of the time, she will reply to student's comments. 
+6. Erica works for UVa Dining. She uses our website to collect students' opinions and draw a summary at the end of each semester.  She wants to be able to login securely and keep track of our website.
 
-7. Erica works for UVa Dining. She uses our website to collect students' opinions and draw a summary at the end of each semester. She also has the privilege to check students' profiles.  She usually prepares gift cards for those who have left lots of comments and been actively engaged in improving dining experience at Uva.
+7. Mike works for the Fresh Food Company at Uva. In order to post the menu on our website, Mike has created an account and is required to login every time before  he make any changes  of the menu.
+
+8. Peter is a new joiner of the dining hall.  He was told to create a new account on our website so that he may have a better understanding about how the dining hall functions. 
+
+9. Juni is a high school senior who just received an offer letter from UVA. She wants to know more about college life at Uva. She visits our homepage to see how the dining hall staff interacts with students without being asked to register as an authenticated user.
+
+10. David is a student at Uva. He sometimes visits our website to check recent dishes that are offered by the dining hall. Since all he needs is the homepage, he is not asked for signing up.
+
 
