@@ -8,6 +8,9 @@ import urllib.request
 import urllib.parse
 import json
 from django.core.exceptions import ObjectDoesNotExist
+from kafka import KafkaProducer
+from elasticsearch import Elasticsearch, ElasticsearchException
+
 
 
 def home(request):
@@ -202,6 +205,8 @@ def create_listing(request):
 		
 		data = urllib.parse.urlencode(post).encode('utf-8')
 		req2 = urllib.request.Request('http://models-api:8000/api/v1/meals/create', data)
+		producer = KafkaProducer(bootstrap_servers='kafka:9092')
+		producer.send('new-listings-topic', json.dumps(job_resp["result"]).encode('utf-8'))
 		try:
 			resp2 = json.loads(urllib.request.urlopen(req2).read().decode('utf-8'))
 		except KeyError:
@@ -210,7 +215,21 @@ def create_listing(request):
 	else:
 		return HttpResponse("Must Post")
 
-
+def search_listing(request):
+	post = request.POST.dict()
+	query = post.get('query')
+	response = {}
+	try:
+		es = Elasticsearch(['es'])
+		search_response = es.search(index='listing_index', body={'query': {'query_string': {'query': query}}, 'size': 10})
+		resp['ok'] = True
+		resp['result'] = []
+		for hit in search_response['hits']['hits']:		
+			resp['result'].append(hit['_source'])
+	except ElasticsearchException as error:
+		resp['ok'] = False
+		resp['result'] = error
+	return JsonResponse(resp)
 
 
 
